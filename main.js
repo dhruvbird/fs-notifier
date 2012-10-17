@@ -141,6 +141,7 @@ function handleWebRequest(req, res) {
     page += "<div style='font-size: 12px; float:right;'>\n";
     page += "<i>Rendered by <a href='https://github.com/dhruvbird/fs-notifier'>fs-notifier</a></i> at <i>" + String(new Date()) + "</i>\n";
     page += "</div>\n<br/><br/></body></html>\n";
+    res.setHeader("Content-Type", "text/html");
     res.end(page);
 }
 
