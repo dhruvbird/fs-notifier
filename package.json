@@ -1,0 +1,21 @@
+{
+  "author": "Dhruv Matani <dhruvbird@gmail.com> (http://dhruvbird.com/)",
+  "name": "fs-notifier",
+  "description": "File System Notifier that invokes scripts when new input files are available",
+  "version": "0.0.1",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git@bitbucket.org:dhruvbird/wikipedia_page_hits.git"
+  },
+  "engines": {
+    "node": "~0.6.0 || ~0.7.0 || 0.7.0-pre || 0.8"
+  },
+  "dependencies": {
+    "underscore": "~1.3.3",
+    "emailjs": "~0.3.2",
+    "tav": "~0.1.0",
+    "watch": "~0.5.1"
+  },
+  "devDependencies": {}
+}
