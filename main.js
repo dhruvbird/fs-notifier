@@ -60,9 +60,10 @@ function spawn_process(script, params, cb) {
 }
 
 function handleWebRequest(req, res) {
-    var page = "<html><head><title>fs-notifer status page</title></head>\n";
-    var i;
-    page += "<body>\n";
+    var styles = "body { padding-left: 20px; padding-right: 20px; font-family: PTSansRegular,Arial,Sans-Serif; }\n";
+    var page = "<html><head><title>fs-notifer status page</title>\n<style type='text/css'>\n" + styles + "</style>\n</head>\n";
+    var i, j;
+    page += "<body>\n<center><h1>fs-notifier status page</h1></center>\n";
 
     if (Object.keys(running).length > 0) {
         page += "<h2>Status of currently running scripts</h2>\n";
@@ -73,8 +74,45 @@ function handleWebRequest(req, res) {
             page += "<tr><td>" + scripts[i] + "</td><td>" + r.path + "</td><td>" + String(r.started) + "</td><td>" +
                 String(Math.round((new Date() - r.started)/1000)) + "</td></tr>\n";
         }
+        page += "</table>\n\n";
     } else {
         page += "<h2>No scripts are currently running</h2>\n";
+    }
+
+    if (Object.keys(toProcess).length > 0) {
+        page += "<h2>List of queued files</h2>\n";
+        page += "<table border='1'><tr><th>Target Script Name</th><th>Queued File(s)</th></tr>\n";
+        var scripts = Object.keys(toProcess);
+        for (i = 0; i < scripts.length; ++i) {
+            var tp = toProcess[scripts[i]];
+            page += "<tr><td>" + scripts[i] + "</td><td>\n<ol>\n";
+            for (j = 0; j < tp.files.length; ++j) {
+                page += "<li>" + tp.files[j] + "</li>\n";
+            }
+            page += "</ol>\n</td>\n</tr>\n";
+        }
+        page += "</table>\n\n";
+    } else {
+        page += "<h2>No files are currently queued</h2>\n";
+    }
+
+    if (config.length > 0) {
+        page += "<h2>List of configured scripts</h2>\n";
+        page += "<table border='1'><tr><th>Target Script Name &amp; email</th><th>File Regular Expressions</th></tr>\n";
+        var scripts = config;
+        for (i = 0; i < scripts.length; ++i) {
+            var s = scripts[i].script;
+            var e = scripts[i].email;
+            var f = scripts[i].files;
+            page += "<tr><td>" + s + "<br/>" + e + "</td><td>\n<ol>\n";
+            for (j = 0; j < f.length; ++j) {
+                page += "<li>" + f[j].source + "</li>\n";
+            }
+            page += "</ol>\n</td>\n</tr>\n";
+        }
+        page += "</table>\n\n";
+    } else {
+        page += "<h2>No scripts currently configured</h2>\n";
     }
 
     res.end(page);
@@ -123,6 +161,9 @@ function start_watching() {
         if (nextFile) {
             running[script] = { path: nextFile, started: new Date() };
             spawn_process(script, [ nextFile ], runScript);
+        } else {
+            // Delete the entry in toProcess for 'script'
+            delete toProcess[script];
         }
     }
 
