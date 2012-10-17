@@ -10,7 +10,7 @@ var crypto  = require('crypto');
 
 var config = [ ];
 
-// { script_name: path of file being processed }
+// { script_name: { path: path of file being processed, started: Time when the script was started } }
 var running = { };
 
 // { script_name: { files: [ list of files that script should be run for ] } }
@@ -77,7 +77,7 @@ function start_watching() {
             if (code == 0) {
                 // Mark the currently processed file as processed
                 // w.r.t. the current script.
-                var flagFilePath = getFlagFilePath(script, running[script]);
+                var flagFilePath = getFlagFilePath(script, running[script].path);
                 var d = path.dirname(flagFilePath);
                 mkdirSync(d);
                 fs.writeFileSync(flagFilePath, '', 'utf8');
@@ -98,7 +98,7 @@ function start_watching() {
         }
 
         if (nextFile) {
-            running[script] = nextFile;
+            running[script] = { path: nextFile, started: new Date() };
             spawn_process(script, [ nextFile ], runScript);
         }
     }
