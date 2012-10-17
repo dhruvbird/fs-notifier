@@ -16,6 +16,9 @@ var running = { };
 // { script_name: { files: [ list of files that script should be run for ] } }
 var toProcess = { };
 
+// { script_name: [ { path: path of file already processed for this script, status: status code, duration: running time in sec } ] }
+var processed = { };
+
 var watchdir = '';
 var metadatadir = '';
 
@@ -96,6 +99,25 @@ function handleWebRequest(req, res) {
         page += "<h2>No files are currently queued</h2>\n";
     }
 
+    if (Object.keys(processed).length > 0) {
+        page += "<h2>Status of already processed files</h2>\n";
+        page += "<table border='1'><tr><th>Target Script Name</th><th>Status</th></tr>\n";
+        var scripts = Object.keys(processed);
+        for (i = 0; i < scripts.length; ++i) {
+            var p = processed[scripts[i]];
+            page += "<tr><td>" + scripts[i] + "</td><td>\n<ol>\n";
+            for (j = 0; j < p.length; ++j) {
+                page += "<li>For <i>" + p[j].path + "</i> ran for <i>" + p[j].duration +
+                    " second</i> and exited with code <i>" +
+                    p[j].status + "</i></li>\n";
+            }
+            page += "</ol>\n</td>\n</tr>\n";
+        }
+        page += "</table>\n\n";
+    } else {
+        page += "<h2>No status for processed files</h2>\n";
+    }
+
     if (config.length > 0) {
         page += "<h2>List of configured scripts</h2>\n";
         page += "<table border='1'><tr><th>Target Script Name &amp; email</th><th>File Regular Expressions</th></tr>\n";
@@ -115,8 +137,11 @@ function handleWebRequest(req, res) {
         page += "<h2>No scripts currently configured</h2>\n";
     }
 
+    page += "<br/><br/><br/><br/><br/><br/><hr/>\n";
+    page += "<div style='font-size: 12px; float:right;'>\n";
+    page += "<i>Rendered by <a href='https://github.com/dhruvbird/fs-notifier'>fs-notifier</a></i> at <i>" + String(new Date()) + "</i>\n";
+    page += "</div>\n<br/><br/></body></html>\n";
     res.end(page);
-
 }
 
 function start_watching() {
@@ -149,6 +174,14 @@ function start_watching() {
             // Remove from toProcess list.
             toProcess[script].files.shift();
 
+            if (!processed.hasOwnProperty(script)) {
+                processed[script] = [ ];
+            }
+            processed[script].push({
+                path: running[script].path,
+                status: code,
+                duration: Math.round((new Date() - running[script].started)/1000)
+            });
             delete running[script];
         }
 
