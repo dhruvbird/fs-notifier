@@ -5,7 +5,7 @@ var _       = require('underscore');
 var spawn   = require('child_process').spawn;
 var watch   = require('watch');
 var crypto  = require('crypto');
-
+var http    = require('http');
 // var email   = require('emailjs');
 
 var config = [ ];
@@ -44,6 +44,7 @@ function mkdirSync(p, mode) {
 }
 
 function spawn_process(script, params, cb) {
+    console.error("spawn_process(", script, ",", params, ")");
     var w = spawn(script, params);
 
     w.stdout.on('data', function(data) {
@@ -56,6 +57,28 @@ function spawn_process(script, params, cb) {
         // console.error("Process Exited with code:", code);
         cb(script, code);
     });
+}
+
+function handleWebRequest(req, res) {
+    var page = "<html><head><title>fs-notifer status page</title></head>\n";
+    var i;
+    page += "<body>\n";
+
+    if (Object.keys(running).length > 0) {
+        page += "<h2>Status of currently running scripts</h2>\n";
+        page += "<table border='1'><tr><th>Script Name</th><th>Processing File</th><th>Running Since</th><th>Running For (sec)</th></tr>\n";
+        var scripts = Object.keys(running);
+        for (i = 0; i < scripts.length; ++i) {
+            var r = running[scripts[i]];
+            page += "<tr><td>" + scripts[i] + "</td><td>" + r.path + "</td><td>" + String(r.started) + "</td><td>" +
+                String(Math.round((new Date() - r.started)/1000)) + "</td></tr>\n";
+        }
+    } else {
+        page += "<h2>No scripts are currently running</h2>\n";
+    }
+
+    res.end(page);
+
 }
 
 function start_watching() {
@@ -138,6 +161,10 @@ function start_watching() {
             foundFile(filePath);
         });
     });
+
+    var server = http.createServer(handleWebRequest);
+
+    server.listen(8664);
 }
 
 function main() {
