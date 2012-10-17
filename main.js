@@ -151,8 +151,8 @@ function main() {
             value: ''
         },
         'config': {
-            note: 'The path of the configuration file (default: ~/.fsnotifier)', 
-            value: '~/.fsnotifier'
+            note: 'The path of the configuration file (default: ' + process.env.HOME + '/.fsnotifier)',
+            value: process.env.HOME + '/.fsnotifier'
         }
     }, 'Watch a directory for changes and invoke a script that is configured to watch files');
 
