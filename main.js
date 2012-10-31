@@ -8,26 +8,38 @@ var crypto  = require('crypto');
 var http    = require('http');
 // var email   = require('emailjs');
 
+var HTTP_LISTEN_PORT = 8664;
+
 var config = [ ];
 
-// { script_name: { path: path of file being processed, started: Time when the script was started } }
+// { script_name: {
+//                  path: path of file being processed,
+//                  started: Time when the script was started,
+//                  num_retries: # of runs for this file,
+//                  pobj: The Process Object for this script
+//                }
+// }
 var running = { };
 
 // { script_name: { files: [ list of files that script should be run for ] } }
 var toProcess = { };
 
-// { script_name: [ { path: path of file already processed for this script, status: status code, duration: running time in sec } ] }
+// { script_name: [ {
+//                    path: path of file already processed for this script,
+//                    status: status code,
+//                    duration: running time in sec,
+//                    num_retries: The # of times this file has been re-tried for this script
+//                   }
+//                ]
+// }
 var processed = { };
 
-var watchdir = '';
+var watchdirs   = '';
 var metadatadir = '';
 
 function getFlagFilePath(script, filePath) {
-    var shasum = crypto.createHash('sha1');
     var scriptName = path.basename(script);
-    shasum.update(script);
-    var d = shasum.digest('hex').substring(0, 5);
-    var ret = path.join(metadatadir, scriptName + "_" + d, path.basename(filePath));
+    var ret = path.join(metadatadir, scriptName);
     return ret;
 }
 
@@ -60,6 +72,7 @@ function spawn_process(script, params, cb) {
         // console.error("Process Exited with code:", code);
         cb(script, code);
     });
+    return w;
 }
 
 function handleWebRequest(req, res) {
@@ -70,12 +83,14 @@ function handleWebRequest(req, res) {
 
     if (Object.keys(running).length > 0) {
         page += "<h2>Status of currently running scripts</h2>\n";
-        page += "<table border='1'><tr><th>Script Name</th><th>Processing File</th><th>Running Since</th><th>Running For (sec)</th></tr>\n";
+        page += "<table border='1'>\n";
+        page += "<tr><th>Script Name</th><th>Processing File</th><th>Running Since</th><th>Running For (sec)</th><th># Runs</th></tr>\n";
         var scripts = Object.keys(running);
         for (i = 0; i < scripts.length; ++i) {
             var r = running[scripts[i]];
-            page += "<tr><td>" + scripts[i] + "</td><td>" + r.path + "</td><td>" + String(r.started) + "</td><td>" +
-                String(Math.round((new Date() - r.started)/1000)) + "</td></tr>\n";
+            page += "<tr><td>" + scripts[i] + "</td><td>" + r.path + "</td><td>" +
+                String(r.started) + "</td><td>" + String(Math.round((new Date() - r.started)/1000)) +
+                "</td><td>" + String(r.num_retries) + "</td></tr>\n";
         }
         page += "</table>\n\n";
     } else {
@@ -107,9 +122,9 @@ function handleWebRequest(req, res) {
             var p = processed[scripts[i]];
             page += "<tr><td>" + scripts[i] + "</td><td>\n<ol>\n";
             for (j = 0; j < p.length; ++j) {
-                page += "<li>For <i>" + p[j].path + "</i> ran for <i>" + p[j].duration +
-                    " second</i> and exited with code <i>" +
-                    p[j].status + "</i></li>\n";
+                page += "<li>For <i>" + p[j].path + "</i> ran <i>" + p[j].num_retries + "</i> times for approximately <i>" +
+                    p[j].duration + " second</i> each time and exited with code <i>" +
+                    p[j].status + "</i> the last time it was run.</li>\n";
             }
             page += "</ol>\n</td>\n</tr>\n";
         }
@@ -158,6 +173,45 @@ function start_watching() {
         }
     }
 
+    function getNextEntryForScript(script) {
+        // This function fetches the next file to process for the
+        // script with name 'script'
+        var nextFile = null;
+        if (toProcess[script] && toProcess[script].files.length > 0) {
+            nextFile = toProcess[script].files[0];
+            toProcess[script].files.shift();
+            if (toProcess[script].files.length === 0) {
+                delete toProcess[script];
+            }
+        }
+
+        if (nextFile) {
+            return { path: nextFile, started: new Date(), num_retries: 1 };
+        }
+
+        var failedFilesForScript = (processed[script] || [ ]).filter(function(entry) {
+            if (entry.status != 0 && entry.num_retries < 5) {
+                // We don't retry a failed file more than 5 times.
+                return true;
+            }
+            return false;
+        });
+
+        if (failedFilesForScript.length > 0) {
+            var pos = 0;
+            var e1 = failedFilesForScript[0];
+            processed[script].forEach(function(entry, index) {
+                if (entry.path == e1.path) {
+                    pos = index;
+                }
+            });
+            processed[script].splice(pos, 1);
+            e1.num_retries = e1.num_retries + 1;
+            return { path: e1.path, started: new Date(), num_retries: e1.num_retries };
+        }
+        return null;
+    }
+
     function runScript(script, code) {
         console.error("runScript(", script, ",", code, ")");
         if (running.hasOwnProperty(script)) {
@@ -172,32 +226,22 @@ function start_watching() {
                 // Not successful. TODO: Send email.
             }
 
-            // Remove from toProcess list.
-            toProcess[script].files.shift();
-
             if (!processed.hasOwnProperty(script)) {
                 processed[script] = [ ];
             }
             processed[script].push({
                 path: running[script].path,
                 status: code,
-                duration: Math.round((new Date() - running[script].started)/1000)
+                duration: Math.round((new Date() - running[script].started)/1000),
+                num_retries: running[script].num_retries
             });
             delete running[script];
         }
 
-        var nextFile = toProcess[script].files[0];
-        while (nextFile && path.existsSync(getFlagFilePath(script, nextFile))) {
-            toProcess[script].files.shift();
-            nextFile = toProcess[script].files[0];
-        }
-
-        if (nextFile) {
-            running[script] = { path: nextFile, started: new Date() };
-            spawn_process(script, [ nextFile ], runScript);
-        } else {
-            // Delete the entry in toProcess for 'script'
-            delete toProcess[script];
+        var nextEntry = getNextEntryForScript(script);
+        if (nextEntry) {
+            running[script] = nextEntry;
+            nextEntry.pobj = spawn_process(script, [ nextEntry.path ], runScript);
         }
     }
 
@@ -223,30 +267,31 @@ function start_watching() {
         }
     }
 
-    watch.watchTree(watchdir, {
-        ignoreDotFiles: true,
-        filter: function(filePath) { foundFile(filePath); return false; }
-    }, function() { });
+    watchdirs.forEach(function(watchdir) {
+        watch.watchTree(watchdir, {
+            ignoreDotFiles: true,
+            filter: function(filePath) { foundFile(filePath); return false; }
+        }, function() { });
 
-    watch.createMonitor(watchdir, function(monitor) {
-        monitor.on('created', function(filePath, stat) {
-            foundFile(filePath);
-        });
-        monitor.on('changed', function(filePath, stat, prevstat) {
-            foundFile(filePath);
+        watch.createMonitor(watchdir, function(monitor) {
+            monitor.on('created', function(filePath, stat) {
+                foundFile(filePath);
+            });
+            monitor.on('changed', function(filePath, stat, prevstat) {
+                foundFile(filePath);
+            });
         });
     });
 
     var server = http.createServer(handleWebRequest);
-
-    server.listen(8664);
+    server.listen(HTTP_LISTEN_PORT);
 }
 
 function main() {
     var opts = require('tav').set({
         'watchdir': {
-            note: 'The path of the directory to watch (required)', 
-            value: ''
+            note: 'The path(s) of the directory(s) to watch (required)',
+            value: [ ]
         },
         'metadatadir': {
             note: 'The path of the directory where the metadata is to be stored (required)', 
@@ -258,8 +303,18 @@ function main() {
         }
     }, 'Watch a directory for changes and invoke a script that is configured to watch files');
 
-    if (!opts.watchdir || !path.existsSync(opts.watchdir)) {
-        console.error("You must specify the directory to watch and it must exist");
+    console.log(opts);
+
+    var numNonExistentWatchDirs = opts.watchdir.reduce(function(prev, curr) {
+        if (!path.existsSync(curr)) {
+            console.error("The directory '" + curr + "' does NOT exist.");
+            prev = prev + 1;
+        }
+        return prev;
+    }, 0);
+
+    if (opts.watchdir.length === 0 || numNonExistentWatchDirs > 0) {
+        console.error("You must specify the directories to watch and they must exist");
         return;
     }
 
@@ -273,7 +328,7 @@ function main() {
 	return;
     }
 
-    watchdir = opts.watchdir;
+    watchdirs   = opts.watchdir;
     metadatadir = opts.metadatadir;
 
     // Load the config file.
@@ -292,7 +347,16 @@ function main() {
 
     // console.log(config);
     start_watching();
-
 }
+
+process.on('SIGINT', function() {
+    var runningScripts = Object.keys(running);
+    runningScripts.forEach(function(script) {
+        var sObj = running[script];
+        console.log("Sending the 'SIGTERM' signal to the process running script '" + script + "'");
+        sObj.pobj.kill('SIGTERM');
+    });
+    process.exit(1);
+});
 
 main();

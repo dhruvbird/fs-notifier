@@ -2,7 +2,7 @@
   "author": "Dhruv Matani <dhruvbird@gmail.com> (http://dhruvbird.com/)",
   "name": "fs-notifier",
   "description": "File System Notifier that invokes scripts when new input files are available",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": {
     "type": "git",
     "url": "git@github.com:dhruvbird/fs-notifier.git"
@@ -13,7 +13,7 @@
   "dependencies": {
     "underscore": "~1.3.3",
     "emailjs": "~0.3.2",
-    "tav": "~0.1.0",
+    "tav": "https://github.com/akaspin/tav/tarball/master",
     "watch": "~0.5.1"
   },
   "devDependencies": {}
