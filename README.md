@@ -98,9 +98,14 @@ expansion.
 
 I don't know the behaviour of fs-notifier in the following scenarios:
 
-1. ```--watchdir``` contains a symlink of another ```--watchdir```
+1. ```--watchdir``` is a symlink.
+
+2. ```--watchdir``` contains a symlink of another ```--watchdir```
 argument.
 
-2. The directory in ```--watchdir``` is deleted and re-created after
+3. The directory in ```--watchdir``` is deleted and re-created after
 the daemon is started.
 
+4. The directory ```--metadatadir``` does NOT have the necessary
+permissions for the fs-notifier daemon to create directories and write
+files to it.
