@@ -94,6 +94,26 @@ isn't placed at ```$HOME/.fsnotifier```. Please don't use paths like
 expansion.
 
 
+## Expected setup
+
+There are many ways to set up fs-notifier, but the expected
+environment uses a process monitoring tool such as:
+
+1. [forever](https://github.com/nodejitsu/forever) or
+2. [daemontools](http://cr.yp.to/daemontools.html)
+
+to monitor the running fs-notifier process (since it blocks). This
+ensures that if the process is killed (which it can be by clicking the
+*Kill Daemon* link on the main page), then the process monitoring tool
+of your choice will re-start it. This is a valid way by which you can
+re-load the configuration file. The process will FAIL to restart if
+the configuration file is not in a valid JSON format.
+
+When the fs-notifier process is killed, it sends a ```SIGTERM```
+signal to each of the scripts that are currently running, so that
+those scripts can handle that signal and [dis]gracefully terminate.
+
+
 ## I don't know
 
 I don't know the behaviour of fs-notifier in the following scenarios:
