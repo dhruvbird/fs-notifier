@@ -76,10 +76,19 @@ function spawn_process(script, params, cb) {
 }
 
 function handleWebRequest(req, res) {
+    // console.log(req.url);
+    if (req.url.search("/kill") === 0) {
+        res.end("<html><body>Exiting...</body></html>\n");
+        process.nextTick(function() {
+            on_SIGINT();
+        });
+        return;
+    }
     var styles = "body { padding-left: 20px; padding-right: 20px; font-family: PTSansRegular,Arial,Sans-Serif; }\n";
     var page = "<html><head><title>fs-notifer status page</title>\n<style type='text/css'>\n" + styles + "</style>\n</head>\n";
     var i, j;
     page += "<body>\n<center><h1>fs-notifier status page</h1></center>\n";
+    page += "<div style='font-size: 14px;'><a href=\"/kill/\">Kill Daemon</a></div>\n";
 
     if (Object.keys(running).length > 0) {
         page += "<h2>Status of currently running scripts</h2>\n";
@@ -355,7 +364,7 @@ function main() {
     start_watching();
 }
 
-process.on('SIGINT', function() {
+function on_SIGINT() {
     var runningScripts = Object.keys(running);
     runningScripts.forEach(function(script) {
         var sObj = running[script];
@@ -363,6 +372,8 @@ process.on('SIGINT', function() {
         sObj.pobj.kill('SIGTERM');
     });
     process.exit(1);
-});
+}
+
+process.on('SIGINT', on_SIGINT);
 
 main();
