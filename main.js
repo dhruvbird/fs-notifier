@@ -104,8 +104,12 @@ function handleWebRequest(req, res) {
         for (i = 0; i < scripts.length; ++i) {
             var tp = toProcess[scripts[i]];
             page += "<tr><td>" + scripts[i] + "</td><td>\n<ol>\n";
-            for (j = 0; j < tp.files.length; ++j) {
-                page += "<li>" + tp.files[j] + "</li>\n";
+            for (j = 0; j < tp.files.length && j+1 < 129; ++j) {
+                var filePath = tp.files[j];
+                if (j+1 == 128) {
+                    filePath = "..." + (tp.files.length - (j+1)) + " more files.";
+                }
+                page += "<li>" + filePath + "</li>\n";
             }
             page += "</ol>\n</td>\n</tr>\n";
         }
@@ -255,12 +259,14 @@ function start_watching() {
             var c = config[i].files;
 
             for (j = 0; j < c.length; ++j) {
-                if (fileName.match(c[i])) {
+                if (fileName.match(c[j])) {
                     // Check if this file has been processed for the
                     // script we are processing.
                     var flagFilePath = getFlagFilePath(config[i].script, filePath);
                     if (!path.existsSync(flagFilePath)) {
                         addToQ(config[i].script, filePath);
+                        // Do NOT add a file multiple times (in case it matches multiple REs).
+                        break;
                     }
                 }
             }
