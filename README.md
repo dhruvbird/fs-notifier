@@ -28,6 +28,10 @@ consuming the output produced by the previous script in the pipe.
   { "script": "/home/username/test02.sh",
     "email": "user2@domain.net",
     "files": [ ".*" ]
+  },
+  { "smtp": { "user": "username", "password": "password",
+              "host": "SMTP host name", "ssl": true
+            }
   }
 ]
 ```
@@ -63,6 +67,11 @@ The strings in the ```files``` array are regular expressions that are
 used to match against file names. If multiple regular expressions
 match a single file name for a given script, then that file is
 processed just once.
+
+The configuration entry with a key of ```smtp``` indicates the SMTP
+configuration used to send out email in case of script execution
+failures.
+
 
 ## Installing
 
