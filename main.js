@@ -78,7 +78,7 @@ function spawn_process(script, params, cb) {
 function handleWebRequest(req, res) {
     // console.log(req.url);
     if (req.url.search("/kill") === 0) {
-        res.end("<html><body>Exiting...</body></html>\n");
+        res.end("<html><body>Exiting... Click <a href=\"/\">here</a> to reload the status page.</body></html>\n");
         process.nextTick(function() {
             on_SIGINT();
         });
@@ -135,7 +135,7 @@ function handleWebRequest(req, res) {
             var p = processed[scripts[i]];
             page += "<tr><td>" + scripts[i] + "</td><td>\n<ol>\n";
             for (j = 0; j < p.length; ++j) {
-                page += "<li>For <i>" + p[j].path + "</i> ran <i>" + p[j].num_retries + "</i> times for approximately <i>" +
+                page += "<li>For <i>" + p[j].path + "</i> ran <i>" + p[j].num_retries + "</i> time(s) for approximately <i>" +
                     p[j].duration + " second</i> each time and exited with code <i>" +
                     p[j].status + "</i> the last time it was run.</li>\n";
             }
