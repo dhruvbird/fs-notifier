@@ -11,6 +11,11 @@ run [http://localhost:8664/](http://localhost:8664/)
 
 fs-notifier automatically re-tries failed files up to 5 times.
 
+I personally use fs-notifier as a crude data-driven workflow
+management tool, and create pipes of workflows, with each script
+consuming the output produced by the previous script in the pipe.
+
+
 ## Sample config file
 
 ```
@@ -50,6 +55,9 @@ match a single file name for a given script, then that file is
 processed just once.
 
 ## Installing
+
+You will need [node.js](http://nodejs.org/) installed on the machine
+you wish to instakk fs-notifier on. Once you have it, just type:
 
 ```$ npm install fs-notifier```
 
