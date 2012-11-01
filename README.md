@@ -7,7 +7,7 @@ notifies interested scripts about these changes. Changes include
 2. Files modified
 
 The daemon always runs on port 8664 on the machine on which it is
-run [http://localhost:8664/]
+run [http://localhost:8664/](http://localhost:8664/)
 
 fs-notifier automatically re-tries failed files up to 5 times.
 
@@ -26,28 +26,28 @@ fs-notifier automatically re-tries failed files up to 5 times.
 ]
 ```
 
-The "script" section is the complete PATH of the script to invoke.
+The ```script``` section is the complete PATH of the script to invoke.
 
 The file names (test01.sh and test02.sh in the example config file
 above) of scripts MUST be unique since they are used to determine the
 status of complete files. i.e. You can NOT have 2 scripts with the
-exact same filoe name.
+exact same file name.
 
 You can move scripts around as long as their file names remain the
-same. i.e "/home/username/test01.sh" can be changed to
-"/opt/scripts/folder01/folder02/test01.sh", but you may NOT change it
-to "/home/username/test03.sh". If you do, then all files associated
-with this script will be re-tried.
+same. i.e ```/home/username/test01.sh``` can be changed to
+```/opt/scripts/folder01/folder02/test01.sh```, but you may NOT change
+it to ```/home/username/test03.sh```. If you do, then all files
+associated with this script will be re-tried.
 
-"email" is OPTIONAL and if set, an email will be sent to the specified
-address every time a script fails to process a given file. This is
-detected by checking the return code of the script. 0 indicates
-success, and anything else indicates a failure.
+```email``` is OPTIONAL and if set, an email will be sent to the
+specified address every time a script fails to process a given
+file. This is detected by checking the return code of the script. 0
+indicates success, and anything else indicates a failure.
 
-The strings in the "files" array are regular expressions that are used
-to match against file names. If multiple regular expressions match a
-single file name for a given script, then that file is processed just
-once.
+The strings in the ```files``` array are regular expressions that are
+used to match against file names. If multiple regular expressions
+match a single file name for a given script, then that file is
+processed just once.
 
 ## Installing
 
