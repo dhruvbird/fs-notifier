@@ -1,4 +1,5 @@
 var fs      = require('fs');
+var os      = require('os');
 var assert  = require('assert').ok;
 var path    = require('path');
 var _       = require('underscore');
@@ -110,11 +111,13 @@ function handleWebRequest(req, res) {
         return;
     }
 
+    var titleText = "fs-notifer status on " + os.hostname();
+
     var styles = "body { padding-left: 20px; padding-right: 20px; font-family: PTSansRegular,Arial,Sans-Serif; }\n";
     styles +=    "ol { margin-top: 3px; margin-bottom: 3px; padding-top: 3px; padding-bottom: 3px; }\n";
-    var page = "<html><head><title>fs-notifer status page</title>\n<style type='text/css'>\n" + styles + "</style>\n</head>\n";
+    var page = "<html><head><title>" + titleText + "</title>\n<style type='text/css'>\n" + styles + "</style>\n</head>\n";
     var i, j;
-    page += "<body>\n<center><h1>fs-notifier status page</h1></center>\n";
+    page += "<body>\n<center><h1>" + titleText + "</h1></center>\n";
     page += "<div style='font-size: 14px;'><a href=\"/kill/\">Kill Daemon</a></div>\n";
 
     if (Object.keys(running).length > 0) {
@@ -191,6 +194,13 @@ function handleWebRequest(req, res) {
     } else {
         page += "<h2>No scripts currently configured</h2>\n";
     }
+
+    page += "<h2>List of watched directories</h2>\n";
+    page += "<table border='1'><tr><th>Watched directory path</th></tr>\n";
+    for (i = 0; i < watchdirs.length; ++i) {
+        page += "<tr><td>" + watchdirs[i] + "</td></tr>\n";
+    }
+    page += "</table>\n";
 
     page += "<br/><br/><br/><br/><br/><br/><hr/>\n";
     page += "<div style='font-size: 12px; float:right;'>\n";
