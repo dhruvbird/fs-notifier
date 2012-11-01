@@ -431,7 +431,7 @@ function main() {
 	return;
     }
 
-    watchdirs   = opts.watchdir;
+    watchdirs   = _.uniq(opts.watchdir);
     metadatadir = opts.metadatadir;
 
     // Load the config file.

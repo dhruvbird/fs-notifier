@@ -144,3 +144,6 @@ the daemon is started.
 4. The directory ```--metadatadir``` does NOT have the necessary
 permissions for the fs-notifier daemon to create directories and write
 files to it.
+
+5. The same directory is specified in both the ```--metadatadir``` as
+well as the ```--watchdir``` arguments.
