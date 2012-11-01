@@ -6,6 +6,7 @@ var spawn   = require('child_process').spawn;
 var watch   = require('watch');
 var crypto  = require('crypto');
 var http    = require('http');
+var url     = require('url');
 // var email   = require('emailjs');
 
 var HTTP_LISTEN_PORT = 8664;
@@ -75,6 +76,11 @@ function spawn_process(script, params, cb) {
     return w;
 }
 
+function getScriptAnchor(script) {
+    // No HTML escaping happening here. Might be dangerous.
+    return '<a href="/getscript/?path=' + escape(script) + '">' + script + '</a>';
+}
+
 function handleWebRequest(req, res) {
     // console.log(req.url);
     if (req.url.search("/kill") === 0) {
@@ -84,7 +90,28 @@ function handleWebRequest(req, res) {
         });
         return;
     }
+    if (req.url.search("/getscript") === 0) {
+        var u = url.parse(req.url, true);
+        var query = u.query;
+        var pathName = null;
+        if (u.query) {
+            pathName = query.path;
+        }
+        res.setHeader('Content-Type', 'text/plain');
+
+        if (!pathName || _.pluck(config, 'script').indexOf(pathName) === -1 || !path.existsSync(pathName)) {
+            // Either the pathName is empty or it doesn't exist or is
+            // not configured as a valid script we are managing.
+            res.end("Sorry, but you can't read the file '" + pathName + "'. Click 'Back' on your browser to go back.");
+        } else {
+            // We assume that the script is a text file.
+            res.end(fs.readFileSync(pathName));
+        }
+        return;
+    }
+
     var styles = "body { padding-left: 20px; padding-right: 20px; font-family: PTSansRegular,Arial,Sans-Serif; }\n";
+    styles +=    "ol { margin-top: 3px; margin-bottom: 3px; padding-top: 3px; padding-bottom: 3px; }\n";
     var page = "<html><head><title>fs-notifer status page</title>\n<style type='text/css'>\n" + styles + "</style>\n</head>\n";
     var i, j;
     page += "<body>\n<center><h1>fs-notifier status page</h1></center>\n";
@@ -97,7 +124,7 @@ function handleWebRequest(req, res) {
         var scripts = Object.keys(running);
         for (i = 0; i < scripts.length; ++i) {
             var r = running[scripts[i]];
-            page += "<tr><td>" + scripts[i] + "</td><td>" + r.path + "</td><td>" +
+            page += "<tr><td>" + getScriptAnchor(scripts[i]) + "</td><td>" + r.path + "</td><td>" +
                 String(r.started) + "</td><td>" + String(Math.round((new Date() - r.started)/1000)) +
                 "</td><td>" + String(r.num_retries) + "</td></tr>\n";
         }
@@ -112,7 +139,7 @@ function handleWebRequest(req, res) {
         var scripts = Object.keys(toProcess);
         for (i = 0; i < scripts.length; ++i) {
             var tp = toProcess[scripts[i]];
-            page += "<tr><td>" + scripts[i] + "</td><td>\n<ol>\n";
+            page += "<tr><td>" + getScriptAnchor(scripts[i]) + "</td><td>\n<ol>\n";
             for (j = 0; j < tp.files.length && j+1 < 129; ++j) {
                 var filePath = tp.files[j];
                 if (j+1 == 128) {
@@ -133,7 +160,7 @@ function handleWebRequest(req, res) {
         var scripts = Object.keys(processed);
         for (i = 0; i < scripts.length; ++i) {
             var p = processed[scripts[i]];
-            page += "<tr><td>" + scripts[i] + "</td><td>\n<ol>\n";
+            page += "<tr><td>" + getScriptAnchor(scripts[i]) + "</td><td>\n<ol>\n";
             for (j = 0; j < p.length; ++j) {
                 page += "<li>For <i>" + p[j].path + "</i> ran <i>" + p[j].num_retries + "</i> time(s) for approximately <i>" +
                     p[j].duration + " second</i> each time and exited with code <i>" +
@@ -154,7 +181,7 @@ function handleWebRequest(req, res) {
             var s = scripts[i].script;
             var e = scripts[i].email;
             var f = scripts[i].files;
-            page += "<tr><td>" + s + "<br/>" + e + "</td><td>\n<ol>\n";
+            page += "<tr><td>" + getScriptAnchor(s) + "<br/>" + e + "</td><td>\n<ol>\n";
             for (j = 0; j < f.length; ++j) {
                 page += "<li>" + f[j].source + "</li>\n";
             }
