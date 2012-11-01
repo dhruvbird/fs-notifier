@@ -9,6 +9,7 @@ var crypto  = require('crypto');
 var http    = require('http');
 var url     = require('url');
 var email   = require('emailjs');
+var ejs     = require('ejs');
 
 var HTTP_LISTEN_PORT = 8664;
 
@@ -98,11 +99,6 @@ function spawn_process(script, params, cb) {
     return w;
 }
 
-function getScriptAnchor(script) {
-    // No HTML escaping happening here. Might be dangerous.
-    return '<a href="/getscript/?path=' + escape(script) + '">' + script + '</a>';
-}
-
 function handleWebRequest(req, res) {
     // console.log(req.url);
     if (req.url.search("/kill") === 0) {
@@ -131,104 +127,18 @@ function handleWebRequest(req, res) {
         }
         return;
     }
-
-    var titleText = "fs-notifer status on " + os.hostname();
-
-    var styles = "body { padding-left: 20px; padding-right: 20px; font-family: PTSansRegular,Arial,Sans-Serif; }\n";
-    styles +=    "ol { margin-top: 3px; margin-bottom: 3px; padding-top: 3px; padding-bottom: 3px; }\n";
-    var page = "<html><head><title>" + titleText + "</title>\n<style type='text/css'>\n" + styles + "</style>\n</head>\n";
-    var i, j;
-    page += "<body>\n<center><h1>" + titleText + "</h1></center>\n";
-    page += "<div style='font-size: 14px;'><a href=\"/kill/\">Kill Daemon</a></div>\n";
-
-    if (Object.keys(running).length > 0) {
-        page += "<h2>Status of currently running scripts</h2>\n";
-        page += "<table border='1'>\n";
-        page += "<tr><th>Script Name</th><th>Processing File</th><th>Running Since</th><th>Running For (sec)</th><th># Runs</th></tr>\n";
-        var scripts = Object.keys(running);
-        for (i = 0; i < scripts.length; ++i) {
-            var r = running[scripts[i]];
-            page += "<tr><td>" + getScriptAnchor(scripts[i]) + "</td><td>" + r.path + "</td><td>" +
-                String(r.started) + "</td><td>" + String(Math.round((new Date() - r.started)/1000)) +
-                "</td><td>" + String(r.num_retries) + "</td></tr>\n";
-        }
-        page += "</table>\n\n";
-    } else {
-        page += "<h2>No scripts are currently running</h2>\n";
-    }
-
-    if (Object.keys(toProcess).length > 0) {
-        page += "<h2>List of queued files</h2>\n";
-        page += "<table border='1'><tr><th>Target Script Name</th><th>Queued File(s)</th></tr>\n";
-        var scripts = Object.keys(toProcess);
-        for (i = 0; i < scripts.length; ++i) {
-            var tp = toProcess[scripts[i]];
-            page += "<tr><td>" + getScriptAnchor(scripts[i]) + "</td><td>\n<ol>\n";
-            for (j = 0; j < tp.files.length && j+1 < 129; ++j) {
-                var filePath = tp.files[j];
-                if (j+1 == 128) {
-                    filePath = "..." + (tp.files.length - (j+1)) + " more files.";
-                }
-                page += "<li>" + filePath + "</li>\n";
-            }
-            page += "</ol>\n</td>\n</tr>\n";
-        }
-        page += "</table>\n\n";
-    } else {
-        page += "<h2>No files are currently queued</h2>\n";
-    }
-
-    if (Object.keys(processed).length > 0) {
-        page += "<h2>Status of already processed files</h2>\n";
-        page += "<table border='1'><tr><th>Target Script Name</th><th>Status</th></tr>\n";
-        var scripts = Object.keys(processed);
-        for (i = 0; i < scripts.length; ++i) {
-            var p = processed[scripts[i]];
-            page += "<tr><td>" + getScriptAnchor(scripts[i]) + "</td><td>\n<ol>\n";
-            for (j = 0; j < p.length; ++j) {
-                page += "<li>For <i>" + p[j].path + "</i> ran <i>" + p[j].num_retries + "</i> time(s) for approximately <i>" +
-                    p[j].duration + " second</i> each time and exited with code <i>" +
-                    p[j].status + "</i> the last time it was run.</li>\n";
-            }
-            page += "</ol>\n</td>\n</tr>\n";
-        }
-        page += "</table>\n\n";
-    } else {
-        page += "<h2>No status for processed files</h2>\n";
-    }
-
-    if (config.length > 0) {
-        page += "<h2>List of configured scripts</h2>\n";
-        page += "<table border='1'><tr><th>Target Script Name &amp; email</th><th>File Regular Expressions</th></tr>\n";
-        var scripts = config;
-        for (i = 0; i < scripts.length; ++i) {
-            var s = scripts[i].script;
-            var e = scripts[i].email;
-            var f = scripts[i].files;
-            page += "<tr><td>" + getScriptAnchor(s) + "<br/>" + e + "</td><td>\n<ol>\n";
-            for (j = 0; j < f.length; ++j) {
-                page += "<li>" + f[j].source + "</li>\n";
-            }
-            page += "</ol>\n</td>\n</tr>\n";
-        }
-        page += "</table>\n\n";
-    } else {
-        page += "<h2>No scripts currently configured</h2>\n";
-    }
-
-    page += "<h2>List of watched directories</h2>\n";
-    page += "<table border='1'><tr><th>Watched directory path</th></tr>\n";
-    for (i = 0; i < watchdirs.length; ++i) {
-        page += "<tr><td>" + watchdirs[i] + "</td></tr>\n";
-    }
-    page += "</table>\n";
-
-    page += "<br/><br/><br/><br/><br/><br/><hr/>\n";
-    page += "<div style='font-size: 12px; float:right;'>\n";
-    page += "<i>Rendered by <a href='https://github.com/dhruvbird/fs-notifier'>fs-notifier</a></i> at <i>" + String(new Date()) + "</i>\n";
-    page += "</div>\n<br/><br/></body></html>\n";
+    var indexTemplate = fs.readFileSync(require.resolve('./index.html'), 'utf8');
+    var html = ejs.render(indexTemplate, {
+        hostname: os.hostname(),
+        running: running,
+        toProcess: toProcess,
+        processed: processed,
+        config: config,
+        watchdirs: watchdirs,
+        compactFileName: path.basename
+    });
     res.setHeader("Content-Type", "text/html");
-    res.end(page);
+    res.end(html);
 }
 
 function start_watching() {

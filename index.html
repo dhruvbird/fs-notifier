@@ -1,0 +1,170 @@
+<html>
+  <head>
+    <title>fs-notifer status on ubuntu</title>
+    <style type='text/css'>
+      body {
+          padding-left: 20px;
+          padding-right: 20px;
+          font-family: PTSansRegular,Arial,Sans-Serif;
+      }
+      ol {
+          margin-top: 3px;
+          margin-bottom: 3px;
+          padding-top: 3px;
+          padding-bottom: 3px;
+      }
+      td {
+          padding: 7px;
+      }
+      th {
+          padding: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <center><h1>fs-notifer status on <%= hostname %></h1></center>
+    <div style='font-size: 14px;'><a href="/kill/">Kill Daemon</a></div>
+
+    <% if (Object.keys(running).length > 0) { %>
+    <h2>Status of currently running scripts</h2>
+    <table border='1'>
+      <tr>
+        <th>Script Name</th>
+        <th>Processing File</th>
+        <th>Running Since</th>
+        <th>Running For (sec)</th>
+        <th># Runs</th>
+      </tr>
+
+      <% Object.keys(running).forEach(function(script) {
+         var r = running[script]; %>
+      <tr>
+        <td><a href="/getscript/?path=<%= escape(script) %>"><%= compactFileName(script) %></a></td>
+        <td><%= compactFileName(r.path) %></td>
+        <td><%= String(r.started) %></td>
+        <td><%= String(Math.round((new Date() - r.started)/1000)) %></td>
+        <td><%= String(r.num_retries) %></td>
+      </tr>
+      <% }); %>
+    </table>
+    <% } else { %>
+    <h2>No scripts are currently running</h2>
+    <% } %>
+
+    <% if (Object.keys(toProcess).length > 0) { %>
+    <h2>List of queued files</h2>
+    <table border='1'>
+      <tr>
+        <th>Target Script Name</th>
+        <th>Queued File(s)</th>
+      </tr>
+
+      <% Object.keys(toProcess).forEach(function(script) {
+         var tp = toProcess[script]; %>
+      <tr>
+        <td><a href="/getscript/?path=<%= escape(script) %>"><%= compactFileName(script) %></a></td>
+        <td>
+          <ol>
+            <% tp.files.forEach(function(filePath, index) {
+                 if (index + 1 > 128) { return; }
+                 var titleText, liText;
+                 if (index + 1 == 128) {
+                   titleText = liText = "..." +
+                     String(tp.files.length - (index+1)) + " more files.";
+                 } else {
+                   titleText = filePath;
+                   liText = compactFileName(filePath);
+                 }
+            %>
+            <li title="<%= titleText %>"><%= liText %></li>
+            <% }); %>
+          </ol>
+        </td>
+      </tr>
+      <% }); %>
+    </table>
+    <% } else { %>
+    <h2>No files are currently queued</h2>
+    <% } %>
+
+    <% if (Object.keys(processed).length > 0) { %>
+    <h2>Status of already processed files</h2>
+    <table border='1'>
+      <tr>
+        <th>Target Script Name</th>
+        <th>Status</th>
+      </tr>
+
+      <% Object.keys(processed).forEach(function(script) {
+         var p = processed[script]; %>
+      <tr>
+        <td><a href="/getscript/?path=<%= escape(script) %>"><%= compactFileName(script) %></a></td>
+        <td>
+          <ol>
+            <% p.forEach(function(pobj, index) { %>
+            <%   if (index + 1 > 128) { return; } %>
+            <li>
+              <%   if (index + 1 == 128) { %>
+              ... <%= tp.files.length - (index+1) %> more files.
+              <% } else { %>
+              <i title="<%= pobj.path %>"><%= compactFileName(pobj.path) %></i>
+              ran <i><%= pobj.num_retries %></i>
+              time(s) for approximately <i><%= pobj.duration %> second</i>
+              each time and exited with code <i><%= pobj.status %></i>
+              the last time it was run.
+              <% } %>
+            </li>
+            <% }); %>
+          </ol>
+        </td>
+      </tr>
+      <% }); %>
+    </table>
+    <% } else { %>
+    <h2>No status for processed files</h2>
+    <% } %>
+
+
+    <h2>List of configured scripts</h2>
+    <table border='1'>
+      <tr>
+        <th>Target Script Name &amp; email</th>
+        <th>File Regular Expressions</th>
+      </tr>
+
+      <% config.forEach(function(script) {
+           var s = script.script;
+           var e = script.email;
+           var f = script.files;
+         %>
+      <tr>
+        <td><a href="/getscript/?path=<%= s %>"><%= compactFileName(s) %></a>
+          <br/><a href="mailto:<%= e %>"><%= e %></a></td>
+        <td>
+          <ol>
+            <% f.forEach(function(reObj) { %>
+            <li><%= reObj.source %></li>
+            <% }); %>
+          </ol>
+        </td>
+      </tr>
+      <% }); %>
+    </table>
+
+    <h2>List of watched directories</h2>
+    <table border='1'>
+      <tr>
+        <th>Watched directory paths</th>
+      </tr>
+      <% watchdirs.forEach(function(watchdir) { %>
+      <tr><td><%= watchdir %></td></tr>
+      <% }); %>
+    </table>
+
+    <br/><br/><br/><br/><br/><br/><hr/>
+    <div style='font-size: 12px; float:right;'>
+      <i>Rendered by <a href='https://github.com/dhruvbird/fs-notifier'>fs-notifier</a></i> at <i><%= new Date() %></i>
+    </div>
+    <br/><br/>
+  </body>
+</html>
