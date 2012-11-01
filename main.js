@@ -8,11 +8,12 @@ var watch   = require('watch');
 var crypto  = require('crypto');
 var http    = require('http');
 var url     = require('url');
-// var email   = require('emailjs');
+var email   = require('emailjs');
 
 var HTTP_LISTEN_PORT = 8664;
 
 var config = [ ];
+var smtp   = { };
 
 // { script_name: {
 //                  path: path of file being processed,
@@ -38,6 +39,26 @@ var processed = { };
 
 var watchdirs   = '';
 var metadatadir = '';
+
+function send_email(from, to, subject, body) {
+    if (!smtp.hasOwnProperty('user')) {
+        return;
+    }
+    var server = email.server.connect({
+	user:     smtp.user,
+	password: smtp.password,
+	host:     smtp.host,
+	ssl:      smtp.ssl
+    });
+
+    var message = {
+	text:    body,
+	from:    from,
+	to:      to,
+	subject: subject
+    };
+    server.send(message, function(err, message) { if (err) console.error(err.stack); });
+}
 
 function getFlagFilePath(script, filePath) {
     var scriptName = path.basename(script);
@@ -213,9 +234,21 @@ function handleWebRequest(req, res) {
 function start_watching() {
     function addToQ(script, file) {
         console.error("addToQ(", script, ",", file, ")");
+
         if (!toProcess.hasOwnProperty(script)) {
             toProcess[script] = { files: [ ] }
         }
+
+        // Check if filePath has already been added to the list of
+        // files to process or already processed file or is currently
+        // being processed.
+        if (toProcess[script].files.indexOf(file) != -1 ||
+            (running.hasOwnProperty(script) && running[script].path == file) ||
+            (processed.hasOwnProperty(script) && _.pluck(processed[script], 'path').indexOf(file) != -1)) {
+            // This file exists.
+            return;
+        }
+
         toProcess[script].files.push(file);
         if (!running.hasOwnProperty(script)) {
             // 'script' is currently NOT running.
@@ -273,7 +306,22 @@ function start_watching() {
                 mkdirSync(d);
                 fs.writeFileSync(flagFilePath, '', 'utf8');
             } else {
-                // Not successful. TODO: Send email.
+                // Not successful. Send email.
+                var c = config.reduce(function(prev, curr) {
+                    if (curr.script === script) {
+                        return curr;
+                    }
+                    return prev;
+                }, { });
+                if (c.hasOwnProperty('email')) {
+                    var rinfo = running[script];
+                    var body = "The script '" + script + "' ran for " +
+                        Math.round((new Date() - running[script].started)/1000) +
+                        " second and failed to process the file '" +
+                        rinfo.path + "' " + rinfo.num_retries + " time(s).\n";
+                    send_email('fs-notifier daemon <no-reply@fsnotifier.net>', c.email,
+                               '[fs-notifier] ' + script + ' failed', body);
+                }
             }
 
             if (!processed.hasOwnProperty(script)) {
@@ -297,6 +345,9 @@ function start_watching() {
 
     function foundFile(filePath) {
         console.error("foundFile(", filePath, ")");
+        if (!path.existsSync(filePath)) {
+            return;
+        }
         var fileName = path.basename(filePath);
         // Check if 'filePath' matches any Regular Expression that any of
         // the scripts are interested in.
@@ -385,8 +436,9 @@ function main() {
 
     // Load the config file.
     config = JSON.parse(fs.readFileSync(opts.config, 'utf8'));
-
-    // console.log(config);
+    smtp = _.chain(config).pluck('smtp').compact().first().value() || { }
+    config = config.filter(function(e) { return e.hasOwnProperty('script'); });
+    // console.log(config, smtp);
 
     // Convert entries to regular expressions.
 
