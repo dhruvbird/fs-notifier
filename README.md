@@ -7,7 +7,8 @@ notifies interested scripts about these changes. Changes include
 2. Files modified
 
 The daemon always runs on port 8664 on the machine on which it is
-run [http://localhost:8664/](http://localhost:8664/)
+run. For example, [http://localhost:8664/](http://localhost:8664/) if
+you are running it on the machine on which you are reading this page.
 
 fs-notifier automatically re-tries failed files up to 5 times.
 
@@ -46,8 +47,9 @@ associated with this script will be re-tried.
 
 ```email``` is OPTIONAL and if set, an email will be sent to the
 specified address every time a script fails to process a given
-file. This is detected by checking the return code of the script. 0
-indicates success, and anything else indicates a failure.
+file. This is detected by checking the **return code** of the
+script. **Zero (0)** indicates **success**, and anything else
+indicates a failure.
 
 The strings in the ```files``` array are regular expressions that are
 used to match against file names. If multiple regular expressions
