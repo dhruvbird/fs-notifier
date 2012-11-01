@@ -9,13 +9,15 @@ notifies interested scripts about these changes. Changes include
 The daemon always runs on port 8664 on the machine on which it is run.
 
 Sample config file:
-    [
-      { "script": "/home/username/test01.sh",
-        "email": "user@domain.net",
-        "files": [ "[a-z]{2,3}wiki-([0-9]+)-pages-articles.xml.bz2", ".*\\.c" ]
-      },
-      { "script": "/home/username/test02.sh",
-        "email": "user2@domain.net",
-        "files": [ ".*" ]
-      }
-    ]
+```
+[
+  { "script": "/home/username/test01.sh",
+    "email": "user@domain.net",
+    "files": [ "[a-z]{2,3}wiki-([0-9]+)-pages-articles.xml.bz2", ".*\\.c" ]
+  },
+  { "script": "/home/username/test02.sh",
+    "email": "user2@domain.net",
+    "files": [ ".*" ]
+  }
+]
+```
