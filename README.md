@@ -51,14 +51,12 @@ once.
 
 ## Installing
 
-$ npm install fs-notifier
-
+```$ npm install fs-notifier```
 
 ## Configuring
 
 Create a configuration file (sample above) and place it at
-```$HOME/.fsnotifier```
-
+```\$HOME/.fsnotifier```
 
 ## Running
 
