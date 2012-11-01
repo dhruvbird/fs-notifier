@@ -55,8 +55,8 @@ once.
 
 ## Configuring
 
-Create a configuration file (sample above) and place it at
-```\$HOME/.fsnotifier```
+Create a configuration file (sample above) and place it at ```$HOME/.fsnotifier```.
+
 
 ## Running
 
