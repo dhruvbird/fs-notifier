@@ -43,7 +43,9 @@ You can move scripts around as long as their file names remain the
 same. i.e ```/home/username/test01.sh``` can be changed to
 ```/opt/scripts/folder01/folder02/test01.sh```, but you may NOT change
 it to ```/home/username/test03.sh```. If you do, then all files
-associated with this script will be re-tried.
+associated with this script will be re-tried. There is however a way
+around this (if you really MUST rename a file). See the section
+*Running* below.
 
 ```email``` is OPTIONAL and if set, an email will be sent to the
 specified address every time a script fails to process a given
@@ -59,7 +61,7 @@ processed just once.
 ## Installing
 
 You will need [node.js](http://nodejs.org/) installed on the machine
-you wish to instakk fs-notifier on. Once you have it, just type:
+you wish to install fs-notifier on. Once you have it, just type:
 
 ```$ npm install fs-notifier```
 
