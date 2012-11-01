@@ -441,13 +441,12 @@ function main() {
     // console.log(config, smtp);
 
     // Convert entries to regular expressions.
-
-    var i;
-    for (i = 0; i < config.length; ++i) {
-        config[i].files = config[i].files.map(function(reStr) {
+    config = config.map(function(e) {
+        e.files = e.files.map(function(reStr) {
             return new RegExp(reStr, "i");
         });
-    }
+        return e;
+    });
 
     // console.log(config);
     start_watching();
