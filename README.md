@@ -34,6 +34,12 @@ consuming the output produced by the previous script in the pipe.
 
 The ```script``` section is the complete PATH of the script to invoke.
 
+Every script is invoked with just 1 argument, that being the path name
+of the file is is supposed to process. Every script returns **Zero
+(0)** to indicate success, and a non-zero value to indicate
+failure. Failed files for a script are automatically re-tried up to 5
+times.
+
 The file names (test01.sh and test02.sh in the example config file
 above) of scripts MUST be unique since they are used to determine the
 status of complete files. i.e. You can NOT have 2 scripts with the
@@ -99,7 +105,7 @@ expansion.
 There are many ways to set up fs-notifier, but the expected
 environment uses a process monitoring tool such as:
 
-1. [forever](https://github.com/nodejitsu/forever) or
+1. [forever](https://github.com/nodejitsu/forever)
 2. [daemontools](http://cr.yp.to/daemontools.html)
 
 to monitor the running fs-notifier process (since it blocks). This
