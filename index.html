@@ -25,6 +25,30 @@
     <center><h1>fs-notifer status on <%= hostname %></h1></center>
     <div style='font-size: 14px;'><a href="/kill/">Kill Daemon</a></div>
 
+    <% if (Object.keys(dupFiles).length > 0) { %>
+    <h2 style="color: red;">Files with duplicate names that need your attention!!</h2>
+    <table border='1'>
+      <tr>
+        <th>Script Name</th>
+        <th>File Path</th>
+      </tr>
+
+      <% Object.keys(dupFiles).forEach(function(script) {
+         var df = _.flatten(_.values(dupFiles[script])); %>
+      <tr>
+        <td><a href="/getscript/?path=<%= escape(script) %>"><%= compactFileName(script) %></a></td>
+        <td>
+          <ol>
+            <% df.forEach(function(file) { %>
+            <li><%= file %></li>
+            <% }); %>
+          </ol>
+        </td>
+      </tr>
+      <% }); %>
+    </table>
+    <% } %>
+
     <% if (Object.keys(running).length > 0) { %>
     <h2>Status of currently running scripts</h2>
     <table border='1'>

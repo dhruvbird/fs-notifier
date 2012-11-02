@@ -38,6 +38,12 @@ var toProcess = { };
 // }
 var processed = { };
 
+// { script_path: { file_name0: file_path0, ..., file_nameN: file_pathN } }
+var scriptFiles = { };
+
+// { script_path: { file_name0: [ file_path0, ..., file_pathN ] } }
+var dupFiles = { }
+
 var watchdirs   = '';
 var metadatadir = '';
 
@@ -129,13 +135,15 @@ function handleWebRequest(req, res) {
     }
     var indexTemplate = fs.readFileSync(require.resolve('./index.html'), 'utf8');
     var html = ejs.render(indexTemplate, {
-        hostname: os.hostname(),
-        running: running,
+        hostname:  os.hostname(),
+        dupFiles:  dupFiles,
+        running:   running,
         toProcess: toProcess,
         processed: processed,
-        config: config,
+        config:    config,
         watchdirs: watchdirs,
-        compactFileName: path.basename
+        compactFileName: path.basename,
+        _:         _
     });
     res.setHeader("Content-Type", "text/html");
     res.end(html);
@@ -149,16 +157,33 @@ function start_watching() {
             toProcess[script] = { files: [ ] }
         }
 
+        if (!scriptFiles.hasOwnProperty(script)) {
+            scriptFiles[script] = { };
+        }
+
         // Check if filePath has already been added to the list of
         // files to process or already processed file or is currently
         // being processed.
-        if (toProcess[script].files.indexOf(file) != -1 ||
-            (running.hasOwnProperty(script) && running[script].path == file) ||
-            (processed.hasOwnProperty(script) && _.pluck(processed[script], 'path').indexOf(file) != -1)) {
-            // This file exists.
+        var fileName = path.basename(file);
+        if (scriptFiles[script].hasOwnProperty(fileName)) {
+            // This file exists. Check if it exists with the same
+            // path.
+            if (scriptFiles[script][fileName] != file) {
+                // There is another file with the same name. Add to
+                // 'dupFiles'.
+                if (!dupFiles.hasOwnProperty(script)) {
+                    dupFiles[script] = { };
+                    dupFiles[script][fileName] = [ ];
+                }
+                var paths = dupFiles[script][fileName];
+                paths.push(file);
+                paths.push(scriptFiles[script][fileName]);
+                dupFiles[script][fileName] = _.uniq(paths);
+            }
             return;
         }
 
+        scriptFiles[script][fileName] = file;
         toProcess[script].files.push(file);
         if (!running.hasOwnProperty(script)) {
             // 'script' is currently NOT running.
