@@ -300,6 +300,29 @@ function start_watching() {
     server.listen(HTTP_LISTEN_PORT);
 }
 
+function duplicates(array, proc) {
+    proc = proc || function(x,y) { return x==y; }
+    if (array.length === 0) { return [ ]; }
+    array.sort();
+    var i = 1;
+    var dups = [ ];
+    var prev = array[0];
+    var has_prev = false;
+    for (i = 1; i < array.length; ++i) {
+        if (proc(prev, array[i])) {
+            if (!has_prev) {
+                has_prev = true;
+                dups.push(prev);
+            }
+            dups.push(array[i]);
+        } else {
+            prev = array[i];
+            has_prev = false;
+        }
+    }
+    return dups;
+}
+
 function main() {
     var opts = require('tav').set({
         'watchdir': {
@@ -357,6 +380,14 @@ function main() {
         });
         return e;
     });
+
+    var allScriptNames    = _.pluck(config, 'script').map(path.basename);
+    var dups = duplicates(allScriptNames);
+
+    if (dups.length > 0) {
+        console.error("The following script names are not unique: " + String(dups));
+        return;
+    }
 
     // console.log(config);
     start_watching();

@@ -1,3 +1,5 @@
+TODO: Check for duplicate scripts and files.
+
 # fs-notifier
 
 The fs-notifier daemon monitors directories (folders) for changes and
