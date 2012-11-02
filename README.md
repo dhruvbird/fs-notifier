@@ -47,9 +47,16 @@ failure. Failed files for a script are automatically re-tried up to 5
 times.
 
 The file names (test01.sh and test02.sh in the example config file
-above) of scripts MUST be unique since they are used to determine the
-status of complete files. i.e. You can NOT have 2 scripts with the
+above) of scripts **MUST be unique** since they are used to determine
+the status of complete files. i.e. You can NOT have 2 scripts with the
 exact same file name.
+
+Additionally, every file name that is being monitored **MUST also be
+unique** since the file names (and not their complete path names) are
+used to detect if the file has been processed. The rationale behind
+using the file name over the file path to check if the file has been
+processed is that it makes it easier to move files around directories
+without losing their completed status with respect to various scripts.
 
 You can move scripts around as long as their file names remain the
 same. i.e ```/home/username/test01.sh``` can be changed to
