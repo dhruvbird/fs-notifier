@@ -163,7 +163,10 @@
          %>
       <tr>
         <td><a href="/getscript/?path=<%= s %>"><%= compactFileName(s) %></a>
-          <br/><a href="mailto:<%= e %>"><%= e %></a></td>
+          <% if (e) { %>
+          <br/><a href="mailto:<%= e %>"><%= e %></a>
+          <% } %>
+        </td>
         <td>
           <ol>
             <% f.forEach(function(reObj) { %>
