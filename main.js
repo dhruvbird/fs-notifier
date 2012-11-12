@@ -173,6 +173,8 @@ function start_watching() {
                 // 'dupFiles'.
                 if (!dupFiles.hasOwnProperty(script)) {
                     dupFiles[script] = { };
+                }
+                if (!dupFiles[script].hasOwnProperty(fileName)) {
                     dupFiles[script][fileName] = [ ];
                 }
                 var paths = dupFiles[script][fileName];
