@@ -153,6 +153,9 @@ function handleWebRequest(req, res) {
 }
 
 function start_watching() {
+    var server = http.createServer(handleWebRequest);
+    server.listen(HTTP_LISTEN_PORT);
+
     function addToQ(script, file) {
         console.error("addToQ(", script, ",", file, ")");
 
@@ -325,9 +328,6 @@ function start_watching() {
             });
         });
     });
-
-    var server = http.createServer(handleWebRequest);
-    server.listen(HTTP_LISTEN_PORT);
 }
 
 function duplicates(array, proc) {
