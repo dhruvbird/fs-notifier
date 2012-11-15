@@ -108,6 +108,7 @@ function spawn_process(script, params, cb) {
 function handleWebRequest(req, res) {
     // console.log(req.url);
     if (req.url.search("/kill") === 0) {
+        res.setHeader('Content-Type', 'text/html');
         var html = "<html><head><meta http-equiv=\"refresh\" content=\"4;url=/\"></head>\n" +
             "<body>Exiting... Click <a href=\"/\">here</a> to reload the status page if you aren't automatically redirected there in 4 second.</body></html>\n";
         res.end(html);
