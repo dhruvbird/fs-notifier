@@ -69,7 +69,7 @@ function send_email(from, to, subject, body) {
 
 function getFlagFilePath(script, filePath) {
     var scriptName = path.basename(script);
-    var ret = path.join(metadatadir, scriptName);
+    var ret = path.join(metadatadir, scriptName, filePath);
     return ret;
 }
 
