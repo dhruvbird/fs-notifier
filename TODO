@@ -1,0 +1,2 @@
+Allow client to reset the completed status of certain files for certain scripts.
+This allows one to process the same file over and over again.
