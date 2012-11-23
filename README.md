@@ -116,6 +116,28 @@ isn't placed at ```$HOME/.fsnotifier```. Please don't use paths like
 expansion.
 
 
+## Important URLs
+
+* [http://localhost/](http://localhost/): The URL where you can
+  monitor the status of your scripts.
+
+* [http://localhost/kill](http://localhost/kill): Kill the fs-notifier
+  daemon. If you have used
+  [daemontools](http://cr.yp.to/daemontools.html) or
+  [forever](https://github.com/nodejitsu/forever) to resetart
+  fs-notifier on crashing, then the daemon will restart and re-load
+  the configuration file from disk. The daemon also sends the
+  ```SIGTERM``` signal to each currently running script.
+
+*
+  [http://localhost/reset?script=SCRIPT&file=FILE](http://localhost/reset?script=SCRIPT&file=FILE):
+  Load this URL to reset the completed status of a file(FILE) with
+  respect to a script(SCRIPT). If the file *FILE* has been marked as
+  completed for script *SCRIPT*, then this call will reset the
+  completed status and invoke the script *SCRIPT* for the file *FILE*
+  in case *FILE* is either created or modified.
+
+
 ## Expected setup
 
 There are many ways to set up fs-notifier, but the expected
