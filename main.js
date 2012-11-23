@@ -137,6 +137,28 @@ function handleWebRequest(req, res) {
         }
         return;
     }
+    if (req.url.search("/reset") === 0) {
+        var u = url.parse(req.url, true);
+        var query = u.query;
+        var fileName = '';
+        var scriptName = '';
+        res.setHeader('Content-Type', 'text/plain');
+        if (!u.script || !u.file) {
+            res.end("bummer");
+            return;
+        }
+        fileName = u.file;
+        scriptName = u.script;
+        if (fileName == "." || fileName == ".." || scriptName == "." || scriptName == ".." ||
+            fileName.search("/") != -1 || scriptName.search("/") != -1) {
+            res.end("careful");
+            return;
+        }
+        var flagFilePath = getFlagFilePath(scriptName, fileName);
+        fs.unlink(flagFilePath);
+        res.end("Reset completion status for file '" + fileName + "' w.r.t script '" + scriptName + "'");
+        return;
+    }
     var indexTemplate = fs.readFileSync(require.resolve('./index.html'), 'utf8');
     var html = ejs.render(indexTemplate, {
         hostname:  os.hostname(),
