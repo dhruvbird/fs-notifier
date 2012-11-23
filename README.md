@@ -129,8 +129,7 @@ expansion.
   the configuration file from disk. The daemon also sends the
   ```SIGTERM``` signal to each currently running script.
 
-*
-  [http://localhost/reset?script=SCRIPT&file=FILE](http://localhost/reset?script=SCRIPT&file=FILE):
+* [http://localhost/reset?script=SCRIPT&file=FILE](http://localhost/reset?script=SCRIPT&file=FILE):
   Load this URL to reset the completed status of a file(FILE) with
   respect to a script(SCRIPT). If the file *FILE* has been marked as
   completed for script *SCRIPT*, then this call will reset the
