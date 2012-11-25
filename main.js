@@ -176,6 +176,8 @@ function handleWebRequest(req, res) {
 }
 
 function start_watching() {
+    // First create the HTTP server so that scanning large directories
+    // doesn't block us.
     var server = http.createServer(handleWebRequest);
     server.listen(HTTP_LISTEN_PORT);
 
@@ -378,14 +380,6 @@ function duplicates(array, proc) {
 
 function main() {
     var opts = require('tav').set({
-        'watchdir': {
-            note: 'The path(s) of the directory(s) to watch (required)',
-            value: [ ]
-        },
-        'metadatadir': {
-            note: 'The path of the directory where the metadata is to be stored (required)', 
-            value: ''
-        },
         'config': {
             note: 'The path of the configuration file (default: ' + process.env.HOME + '/.fsnotifier)',
             value: process.env.HOME + '/.fsnotifier'
@@ -394,37 +388,23 @@ function main() {
 
     console.log(opts);
 
-    var numNonExistentWatchDirs = opts.watchdir.reduce(function(prev, curr) {
-        if (!path.existsSync(curr)) {
-            console.error("The directory '" + curr + "' does NOT exist.");
-            prev = prev + 1;
-        }
-        return prev;
-    }, 0);
-
-    if (opts.watchdir.length === 0 || numNonExistentWatchDirs > 0) {
-        console.error("You must specify the directories to watch and they must exist");
-        return;
-    }
-
-    if (!opts.metadatadir || !path.existsSync(opts.metadatadir)) {
-        console.error("You must specify the metadata directory and it must exist");
-        return;
-    }
-
     if (!path.existsSync(opts.config)) {
 	console.error("You must create the config file at '" + opts.config + "' or specify the file at --config");
 	return;
     }
 
-    watchdirs   = _.uniq(opts.watchdir);
-    metadatadir = opts.metadatadir;
+    var conf;
 
     // Load the config file.
     config = JSON.parse(fs.readFileSync(opts.config, 'utf8'));
-    smtp = _.chain(config).pluck('smtp').compact().first().value() || { }
+    smtp   = _.chain(config).pluck('smtp').compact().first().value() || { };
+    conf   = _.chain(config).pluck('conf').compact().first().value() || { };
     config = config.filter(function(e) { return e.hasOwnProperty('script'); });
     // console.log(config, smtp);
+
+    HTTP_LISTEN_PORT = conf.http_port || HTTP_LISTEN_PORT;
+    watchdirs   = _.uniq(conf.watchdirs || [ ]);
+    metadatadir = conf.metadatadir || '';
 
     // Convert entries to regular expressions.
     config = config.map(function(e) {
@@ -433,6 +413,24 @@ function main() {
         });
         return e;
     });
+
+    var numNonExistentWatchDirs = watchdirs.reduce(function(prev, curr) {
+        if (!path.existsSync(curr)) {
+            console.error("The directory '" + curr + "' does NOT exist.");
+            prev = prev + 1;
+        }
+        return prev;
+    }, 0);
+
+    if (watchdirs.length === 0 || numNonExistentWatchDirs > 0) {
+        console.error("You must specify the directories to watch and they must exist");
+        return;
+    }
+
+    if (!metadatadir || !path.existsSync(metadatadir)) {
+        console.error("You must specify the metadata directory and it must exist");
+        return;
+    }
 
     var allScriptNames    = _.pluck(config, 'script').map(path.basename);
     var dups = duplicates(allScriptNames);

@@ -29,12 +29,20 @@ consuming the output produced by the previous script in the pipe.
     "email": "user2@domain.net",
     "files": [ ".*" ]
   },
+  {
+    "conf": { watchdirs:   [ "/dir1", "/dir2", "/dirN" ],
+              metadatadir: "/tmp/fs-notifier-meta",
+              http_port:   8664
+            }
+  },
   { "smtp": { "user": "username", "password": "password",
               "host": "SMTP host name", "ssl": true
             }
   }
 ]
 ```
+
+### Key(s) ```script```
 
 The ```script``` section is the complete PATH of the script to invoke.
 
@@ -75,9 +83,27 @@ used to match against file names. If multiple regular expressions
 match a single file name for a given script, then that file is
 processed just once.
 
-The configuration entry with a key of ```smtp``` indicates the SMTP
-configuration used to send out email in case of script execution
-failures.
+### Key ```conf```
+
+You may specify as many directories in the ```watchdirs``` array as
+the number of directories you wish to watch.
+
+The ```metadatadir``` entry is a directory where the metadata about
+the completion status of the various scripts on the files being
+watched is stored. This is used in the case when the daemon is stopped
+and re-started to determine which files have been successfully
+processed by a certain script. This is why it is **ESSENTIAL** to keep
+the name of the script the same. If you **ABSOLUTELY MUST rename** a
+script, please also rename the folder under this directory to reflect
+the new name of the script.
+
+The ```http_port``` is the port on which the internal HTTP service
+will be listening for requests.
+
+### Key ```smtp```
+
+This entry indicates the SMTP configuration used to send out email in
+case of script execution failures.
 
 
 ## Installing
@@ -95,26 +121,13 @@ Create a configuration file (sample above) and place it at ```$HOME/.fsnotifier`
 ## Running
 
 ```
-$ fs-notifier --watchdir=PATH1 --watchdir=PATH_N --metadatadir=PATH_TO_METADATADIR --config=PATH_TO_CONFIG
+$ fs-notifier --config=PATH_TO_CONFIG
 ```
-
-You may specify as many ```--watchdir``` arguments as the number of
-directories you wish to watch.
-
-The ```--metadatadir``` is a directory where the metadata about the
-completion status of the various scripts on the files being watched is
-stored. This is used in the case when the daemon is stopped and
-re-started to determine which files have been successfully processed
-by a certain script. This is why it is important (nay ESSENTIAL) to
-keep the name of the script the same. If you ABSOLUTELY MUST rename a
-script, please also rename the folder under this directory to reflect
-the new name of the script.
 
 The ```--config``` is the path to the configuration file in case it
 isn't placed at ```$HOME/.fsnotifier```. Please don't use paths like
 ```~/folder/file``` since ```fs-notifier``` will NOT perform GLOB
 expansion.
-
 
 ## Important URLs
 
