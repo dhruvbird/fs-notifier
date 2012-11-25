@@ -2,7 +2,7 @@
   "author": "Dhruv Matani <dhruvbird@gmail.com> (http://dhruvbird.com/)",
   "name": "fs-notifier",
   "description": "File System Notifier that invokes scripts when new input files are available",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "repository": {
     "type": "git",
     "url": "git@github.com:dhruvbird/fs-notifier.git"
