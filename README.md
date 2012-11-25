@@ -174,17 +174,18 @@ those scripts can handle that signal and [dis]gracefully terminate.
 
 I don't know the behaviour of fs-notifier in the following scenarios:
 
-1. ```--watchdir``` is a symlink.
+1. One of the directories in ```watchdirs``` is a symlink.
 
-2. ```--watchdir``` contains a symlink of another ```--watchdir```
-argument.
+2. One of the directories in ```watchdirs``` contains a symlink of
+another entry in ```watchdirs```.
 
-3. The directory in ```--watchdir``` is deleted and re-created after
-the daemon is started.
+3. A directory in ```watchdirs``` is deleted and re-created after the
+daemon is started.
 
-4. The directory ```--metadatadir``` does NOT have the necessary
+4. The directory ```metadatadir``` does NOT have the necessary
 permissions for the fs-notifier daemon to create directories and write
 files to it.
 
-5. The same directory is specified in both the ```--metadatadir``` as
-well as the ```--watchdir``` arguments.
+5. The same directory (or symlinks of the same directory) is specified
+as both the ```metadatadir``` as well as one of the ```watchdirs```
+directories.
