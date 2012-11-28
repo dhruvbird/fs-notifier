@@ -8,9 +8,9 @@
     "files": [ ".*" ]
   },
   {
-    "conf": { watchdirs:   [ "/dir1", "/dir2", "/dirN" ],
-              metadatadir: "/tmp/fs-notifier-meta",
-              http_port:   8664
+    "conf": { "watchdirs":   [ "/dir1", "/dir2", "/dirN" ],
+              "metadatadir": "/tmp/fs-notifier-meta",
+              "http_port":   8664
             }
   },
   { "smtp": { "user": "username", "password": "password",
