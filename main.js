@@ -333,7 +333,8 @@ function start_watching() {
     }
 
     function foundFile(filePath) {
-        console.error("foundFile(", filePath, ")");
+        // This is polluting the logs too much. Commented out for now.
+        // console.error("foundFile(", filePath, ")");
         if (!path.existsSync(filePath)) {
             return;
         }
