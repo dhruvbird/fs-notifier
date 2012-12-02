@@ -47,6 +47,12 @@ var dupFiles = { }
 var watchdirs   = '';
 var metadatadir = '';
 
+function equalTo(value) {
+    return function(v) {
+        return v == value;
+    };
+}
+
 function send_email(from, to, subject, body) {
     if (!smtp.hasOwnProperty('user')) {
         return;
@@ -154,9 +160,24 @@ function handleWebRequest(req, res) {
             res.end("careful");
             return;
         }
+
+        // Remove the 'success' flag file from the file system.
         var flagFilePath = getFlagFilePath(scriptName, fileName);
         fs.unlink(flagFilePath);
-        res.end("Reset completion status for file '" + fileName + "' w.r.t script '" + scriptName + "'");
+
+        // Remove the entry in the 'processed' map.
+        var scriptPath = _.find(Object.keys(processed).map(path.basename), equalTo(scriptName));
+        if (scriptPath && processed.hasOwnProperty(scriptPath)) {
+            for (i = 0; i < processed[scriptPath].length; ++i) {
+                if (path.basename(processed[scriptPath][i].path) == fileName) {
+                    res.write("Removed file '" + processed[scriptPath][i].path + "' w.r.t. script '" + scriptPath + "'\n");
+                    processed[scriptPath][i].splice(i, 1);
+                    --i;
+                }
+            }
+        }
+
+        res.end("Reset completion status for file '" + fileName + "' w.r.t. script '" + scriptName + "'");
         return;
     }
     var indexTemplate = fs.readFileSync(require.resolve('./index.html'), 'utf8');
