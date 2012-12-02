@@ -150,7 +150,7 @@ function handleWebRequest(req, res) {
         var scriptName = '';
         res.setHeader('Content-Type', 'text/plain');
         if (!u.script || !u.file) {
-            res.end("bummer");
+            res.end("bummer :-(\n");
             return;
         }
         fileName = u.file;
@@ -177,7 +177,7 @@ function handleWebRequest(req, res) {
             }
         }
 
-        res.end("Reset completion status for file '" + fileName + "' w.r.t. script '" + scriptName + "'");
+        res.end("Reset completion status for file '" + fileName + "' w.r.t. script '" + scriptName + "'\n");
         return;
     }
     var indexTemplate = fs.readFileSync(require.resolve('./index.html'), 'utf8');
