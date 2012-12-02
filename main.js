@@ -149,12 +149,12 @@ function handleWebRequest(req, res) {
         var fileName = '';
         var scriptName = '';
         res.setHeader('Content-Type', 'text/plain');
-        if (!u.script || !u.file) {
+        if (!query.script || !query.file) {
             res.end("bummer :-(\n");
             return;
         }
-        fileName = u.file;
-        scriptName = u.script;
+        fileName = query.file;
+        scriptName = query.script;
         if (fileName == "." || fileName == ".." || scriptName == "." || scriptName == ".." ||
             fileName.search("/") != -1 || scriptName.search("/") != -1) {
             res.end("careful");
