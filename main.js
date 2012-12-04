@@ -202,7 +202,7 @@ function start_watching() {
     var server = http.createServer(handleWebRequest);
     server.listen(HTTP_LISTEN_PORT);
 
-    console.err("Started the HTTP server on port:", HTTP_LISTEN_PORT);
+    console.error("Started the HTTP server on port:", HTTP_LISTEN_PORT);
 
     function addToQ(script, file) {
         console.error("addToQ(", script, ",", file, ")");
@@ -368,7 +368,7 @@ function start_watching() {
             filter: function(filePath) { foundFile(filePath); return false; }
         }, function() { });
 
-        console.err("Creating directory watcher for directory:", watchdir);
+        console.error("Creating directory watcher for directory:", watchdir);
 
         watch.createMonitor(watchdir, function(monitor) {
             monitor.on('created', function(filePath, stat) {
