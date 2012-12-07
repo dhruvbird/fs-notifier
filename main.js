@@ -495,5 +495,6 @@ function on_SIGINT() {
 }
 
 process.on('SIGINT', on_SIGINT);
+process.on('SIGTERM', on_SIGINT);
 
 main();
