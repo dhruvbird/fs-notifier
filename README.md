@@ -139,8 +139,14 @@ expansion.
   [daemontools](http://cr.yp.to/daemontools.html) or
   [forever](https://github.com/nodejitsu/forever) to resetart
   fs-notifier on crashing, then the daemon will restart and re-load
-  the configuration file from disk. The daemon also sends the
-  ```SIGTERM``` signal to each currently running script.
+  the configuration file from disk. The fs-notifier daemon also sends
+  the ```SIGTERM``` signal to each currently running script. Before
+  running a script, fs-notifier sets the PGID of the newly spawned
+  process to the PID of the process, so that unless the user does
+  something, the newly spawned process and every child of this newly
+  spawned process as the same PGID as the newly spawned process. This
+  lets fs-notifier send the ```SIGTERM``` signal to the complete
+  process group instead of just a single process.
 
 * [http://localhost/reset?script=SCRIPT&file=FILE](http://localhost/reset?script=SCRIPT&file=FILE):
   Load this URL to reset the completed status of a file(FILE) with
