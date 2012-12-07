@@ -484,7 +484,7 @@ function on_SIGTERM() {
     var runningScripts = Object.keys(running);
     runningScripts.forEach(function(script) {
         var sObj = running[script];
-        console.log("Sending the 'SIGTERM' signal to the process group running script '" + script + "'");
+        console.error("Sending the 'SIGTERM' signal to the process group running script '" + script + "'");
         spawn_process('/bin/kill',
                       [ '-TERM', '-' + String(sObj.pobj.pid) ],
                       function() { }
