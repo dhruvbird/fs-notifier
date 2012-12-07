@@ -110,6 +110,14 @@ function spawn_process(script, params, cb) {
     w.on('exit', function(code) {
         // console.error("Process Exited with code:", code);
         cb(script, code);
+        if (script != '/bin/kill') {
+            // Kill all processes that belonged to the same PGID as
+            // the process that just died.
+            spawn_process('/bin/kill',
+                          [ '-TERM', '-' + String(w.pid) ],
+                          function() { }
+                         );
+        }
     });
     return w;
 }
