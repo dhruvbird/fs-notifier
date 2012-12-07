@@ -109,7 +109,6 @@ function spawn_process(script, params, cb) {
     });
     w.on('exit', function(code) {
         // console.error("Process Exited with code:", code);
-        w.exit();
         cb(script, code);
     });
     return w;
