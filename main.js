@@ -480,7 +480,7 @@ function main() {
     start_watching();
 }
 
-function on_SIGINT() {
+function on_SIGTERM() {
     var runningScripts = Object.keys(running);
     runningScripts.forEach(function(script) {
         var sObj = running[script];
@@ -494,7 +494,6 @@ function on_SIGINT() {
     process.exit(1);
 }
 
-process.on('SIGINT', on_SIGINT);
-process.on('SIGTERM', on_SIGINT);
+process.on('SIGTERM', on_SIGTERM);
 
 main();
