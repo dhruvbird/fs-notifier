@@ -97,7 +97,9 @@ function mkdirSync(p, mode) {
 
 function spawn_process(script, params, cb) {
     console.error("spawn_process(", script, ",", params, ")");
-    var w = spawn(script, params);
+    var swrap_path = require.resolve('./spawn_wrapper');
+    params.unshift(script);
+    var w = spawn(swrap_path, params);
 
     w.stdout.on('data', function(data) {
         process.stdout.write("[" + script + "] " + data.toString());
@@ -475,8 +477,12 @@ function on_SIGINT() {
     var runningScripts = Object.keys(running);
     runningScripts.forEach(function(script) {
         var sObj = running[script];
-        console.log("Sending the 'SIGTERM' signal to the process running script '" + script + "'");
-        sObj.pobj.kill('SIGTERM');
+        console.log("Sending the 'SIGTERM' signal to the process group running script '" + script + "'");
+        spawn_process('/bin/kill',
+                      [ '-TERM', '-' + String(sObj.pobj.pid) ],
+                      function() { }
+                     );
+        // sObj.pobj.kill('SIGTERM');
     });
     process.exit(1);
 }
