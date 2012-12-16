@@ -38,9 +38,13 @@ var toProcess = { };
 // }
 var processed = { };
 
+// Stores the list of all files ever associated with a certain script.
+//
 // { script_path: { file_name0: file_path0, ..., file_nameN: file_pathN } }
 var scriptFiles = { };
 
+// A list of duplicates for every file name.
+//
 // { script_path: { file_name0: [ file_path0, ..., file_pathN ] } }
 var dupFiles = { }
 
@@ -215,7 +219,7 @@ function start_watching() {
     console.error("Started the HTTP server on port:", HTTP_LISTEN_PORT);
 
     function addToQ(script, file) {
-        console.error("addToQ(", script, ",", file, ")");
+        // console.error("addToQ(", script, ",", file, ")");
 
         if (!toProcess.hasOwnProperty(script)) {
             toProcess[script] = { files: [ ] }
@@ -249,6 +253,8 @@ function start_watching() {
             return;
         }
 
+        console.error("Adding '" + file + "' to process for script '" + script + "'");
+
         scriptFiles[script][fileName] = file;
         toProcess[script].files.push(file);
         if (!running.hasOwnProperty(script)) {
@@ -261,7 +267,7 @@ function start_watching() {
         // This function fetches the next file to process for the
         // script with name 'script'
         var nextFile = null;
-        if (toProcess[script] && toProcess[script].files.length > 0) {
+        if (toProcess.hasOwnProperty(script) && toProcess[script].files.length > 0) {
             nextFile = toProcess[script].files[0];
             toProcess[script].files.shift();
             if (toProcess[script].files.length === 0) {
@@ -356,14 +362,15 @@ function start_watching() {
         var i, j;
         for (i = 0; i < config.length; ++i) {
             var c = config[i].files;
+            var scriptName = config[i].script;
 
             for (j = 0; j < c.length; ++j) {
                 if (fileName.match(c[j])) {
                     // Check if this file has been processed for the
                     // script we are processing.
-                    var flagFilePath = getFlagFilePath(config[i].script, filePath);
+                    var flagFilePath = getFlagFilePath(scriptName, filePath);
                     if (!path.existsSync(flagFilePath)) {
-                        addToQ(config[i].script, filePath);
+                        addToQ(scriptName, filePath);
                         // Do NOT add a file multiple times (in case it matches multiple REs).
                         break;
                     }
@@ -489,7 +496,6 @@ function on_SIGTERM() {
                       [ '-TERM', '-' + String(sObj.pobj.pid) ],
                       function() { }
                      );
-        // sObj.pobj.kill('SIGTERM');
     });
     process.exit(1);
 }
