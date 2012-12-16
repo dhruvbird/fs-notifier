@@ -9,6 +9,10 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Please specify the process to invoke\n");
         exit(1);
     }
-    r = execv(argv[1], &argv[1]);
+    char *args[64] = { NULL };
+    for (i = 1; i < argc; ++i) {
+        args[i - 1] = argv[i];
+    }
+    r = execv(argv[1], args);
     return r;
 }
