@@ -134,7 +134,7 @@ function handleWebRequest(req, res) {
             "<body>Exiting... Click <a href=\"/\">here</a> to reload the status page if you aren't automatically redirected there in 4 second.</body></html>\n";
         res.end(html);
         process.nextTick(function() {
-            on_SIGINT();
+            on_SIGTERM();
         });
         return;
     }
