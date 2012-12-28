@@ -129,7 +129,7 @@
             <%   if (index + 1 > 128) { return; } %>
             <li>
               <%   if (index + 1 == 128) { %>
-              ... <%= p.files.length - (index+1) %> more files.
+              ... <%= p.length - (index+1) %> more files.
               <% } else { %>
               <i title="<%= pobj.path %>"><%= compactFileName(pobj.path) %></i>
               ran <i><%= pobj.num_retries %></i>
